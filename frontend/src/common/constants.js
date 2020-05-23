@@ -1,0 +1,1 @@
+export const SERVERPATH = 'http://localhost:1234/api';
