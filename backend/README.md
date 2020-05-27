@@ -233,6 +233,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
 
 #### POST `/api/quizzes`
 - Initiates (or continues) a quiz, returning a question at random from the selected category (or any category, if "ALL" was selected by the user as the desired category)
+- Once all questions are exhausted, question will be returned as `None` (`null`)
 - Request Arguments: None
 - Request Body: Object containing two keys, `quiz_category` and `previous_questions`
     - `quiz_category`: An object describing the users selected category (optional)
@@ -272,3 +273,12 @@ python test_flaskr.py
 Alternatively, you can run all of the commands above by executing:
 
 `bin/test.sh`
+
+## Future feature requests
+
+Development on a full stack web application is never done. Here are some things at the top of our wish list for future iterations:
+
+* [] Switch database setup from `trivia.psql` to use `Flask-migrate` enabling more effective schema migrations
+* [] Make __init__.py more modular, breaking out classes into their own hierarchy
+* [] Implement `swagger` for API documentation to make API docs more connected with the API that is developed
+* [] Refactor `/api/questions` and `/api/categories/<id>/questions` into a single helper function
