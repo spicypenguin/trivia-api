@@ -8,10 +8,9 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
-# Helper functions
-
 
 def get_start_and_end(page):
+    """Return start and end values based on page requested."""
     return page - 1, page * QUESTIONS_PER_PAGE
 
 
@@ -110,7 +109,7 @@ def create_app(test_config=None):
             })
 
     @app.route('/api/questions', methods=['POST'])
-    def create_question():
+    def create_or_search_question():
         """Create new question, or search for question."""
         data = request.get_json()
 
@@ -144,8 +143,8 @@ def create_app(test_config=None):
                 'success': True
             })
         except:
-            # raise a 500 error if insert to db failed
-            abort(500)
+            # raise a 422 error if insert to db failed
+            abort(422)
 
     def search_for_questions(data):
         """Search for questions using case-insensitive matching on question.
@@ -200,7 +199,6 @@ def create_app(test_config=None):
 
         # retrieve the category that the user is requesting data for
         category = int(data.get('quiz_category').get('id', 0))
-        print(category)
 
         # retrieve the questions the user has already completed
         previous_questions = data.get('previous_questions', [])
