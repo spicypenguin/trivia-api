@@ -163,7 +163,14 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     - For create:
         ```
         {
-            'success': True
+            'success': True,
+            'question': {
+                'id': '',
+                'question': '',
+                'answer': '',
+                'category': '',
+                'difficulty': ''
+            }
         }
         ```
     - For search
@@ -225,7 +232,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     - `404`: Invalid page number provided (out of range of questions)
 
 #### POST `/api/quizzes`
-- Does something
+- Initiates (or continues) a quiz, returning a question at random from the selected category (or any category, if "ALL" was selected by the user as the desired category)
 - Request Arguments: None
 - Request Body: Object containing two keys, `quiz_category` and `previous_questions`
     - `quiz_category`: An object describing the users selected category (optional)

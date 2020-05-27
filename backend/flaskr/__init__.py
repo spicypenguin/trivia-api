@@ -11,7 +11,7 @@ QUESTIONS_PER_PAGE = 10
 
 def get_start_and_end(page):
     """Return start and end values based on page requested."""
-    return page - 1, page * QUESTIONS_PER_PAGE
+    return (page - 1) * QUESTIONS_PER_PAGE, page * QUESTIONS_PER_PAGE
 
 
 def create_app(test_config=None):
@@ -64,16 +64,19 @@ def create_app(test_config=None):
         # calculate the start and end page numbers
         start, end = get_start_and_end(page)
 
-        return jsonify({
-            'questions': [question.format() for question in questions][start:end],
-            'current_category': None,
-            'categories': {
-                category.format()['id']: category.format()['type']
-                for category in categories
-            },
-            'total_questions': len(questions),
-            'success': True
-        })
+        if start > len(questions):
+            abort(404)
+        else:
+            return jsonify({
+                'questions': [question.format() for question in questions][start:end],
+                'current_category': None,
+                'categories': {
+                    category.format()['id']: category.format()['type']
+                    for category in categories
+                },
+                'total_questions': len(questions),
+                'success': True
+            })
 
     @app.route('/api/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
@@ -131,6 +134,14 @@ def create_app(test_config=None):
         Takes question, answer, category, difficulty entered from UI.
         Creates new question object and persists to db.
         """
+        # Only allow writes to the db if all data is provided
+        if not (
+                data.get('question')
+                and data.get('answer')
+                and data.get('category')
+                and data.get('difficulty')):
+            abort(400)
+
         try:
             question = Question(
                 question=data.get('question'),
@@ -140,7 +151,14 @@ def create_app(test_config=None):
             )
             question.insert()
             return jsonify({
-                'success': True
+                'success': True,
+                'question': {
+                    'id': question.id,
+                    'question': question.question,
+                    'answer': question.answer,
+                    'category': question.category,
+                    'difficulty': question.difficulty
+                }
             })
         except:
             # raise a 422 error if insert to db failed
@@ -181,16 +199,16 @@ def create_app(test_config=None):
         page = request.args.get('page', default=1, type=int)
         start, end = get_start_and_end(page)
 
-        if category or start > len(questions):
+        # category requested could not be found, or page is invalid
+        if not category or start > len(questions):
+            abort(404)
+        else:
             return jsonify({
                 'questions': [q.format() for q in questions][start:end],
                 'current_category': category.type,
                 'total_questions': len(questions),
                 'success': True
             })
-        else:
-            # category requested could not be found, or page is invalid
-            abort(404)
 
     @app.route('/api/quizzes', methods=['POST'])
     def run_quiz():
@@ -205,6 +223,14 @@ def create_app(test_config=None):
 
         # if "ALL" selected, category ID is 0
         if category > 0:
+            # attempt to match the requested category to the database
+            category_object = Category.query.filter(
+                Category.id == category).one_or_none()
+
+            # raise a 404 error if no category object exists
+            if not category_object:
+                abort(404)
+
             # get all questions (not yet asked) for the specified category
             questions = Question.query.filter(
                 Question.category == category,
@@ -250,6 +276,14 @@ def create_app(test_config=None):
             'success': False,
             'message': 'resource not found'
         }), 404
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({
+            'error': 405,
+            'success': False,
+            'message': 'method not allowed'
+        }), 405
 
     @app.errorhandler(410)
     def resource_gone(error):
