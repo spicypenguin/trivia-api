@@ -90,7 +90,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
 
 ## API Documentation
 
-#### GET '/api/categories'
+#### GET `/api/categories`
 - Fetches a list of all caegories
 - Request Arguments: None
 - Response: An object with two keys, categories and success, where success is always `True`, and categories is an object of key:value pairs (Category.id:Category.type)
@@ -140,7 +140,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     }
     ```
 
-#### POST '/api/questions'
+#### POST `/api/questions`
 - Create a new question, or search for existing questions
 - Request Arguments: None
 - Request Body:
@@ -188,7 +188,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     - `400`: The body provided in the initial `POST` did not match the requirements for either search or create
     - `422`: An error happened when attempting to create the new question
 
-#### DELETE '/api/questions/<question_id>'
+#### DELETE `/api/questions/<question_id>`
 - Removes a question from the database, based on the provided ID
 - Request Arguments:
     - `question_id` (integer, mandatory)
@@ -205,7 +205,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
 
 
 
-#### GET '/api/categories/<category_id>/questions'
+#### GET `/api/categories/<category_id>/questions`
 - Fetches a list of all questions within a given category, paginated into groups of 10 questions at a time
 - List is ordered by `Question.id` for consistent diplay
 - Request Arguments: 
@@ -224,7 +224,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     - `404`: Invalid category ID provided
     - `404`: Invalid page number provided (out of range of questions)
 
-#### POST '/api/quizzes'
+#### POST `/api/quizzes`
 - Does something
 - Request Arguments: None
 - Request Body: Object containing two keys, `quiz_category` and `previous_questions`
