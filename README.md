@@ -20,7 +20,7 @@ Quick start: `cd ./backend && bin/setup.sh && export FLASK_APP=flaskr && export 
 
 The `./frontend` directory contains the React frontend to consume the data from the Flask server.  Refer to the [README.md](./frontend/README.md) under that directory for information on getting started with the frontend.
 
-Quick start: `npm install && npm start`
+Quick start: `cd ./frontend && npm install && npm start`
 
 ## Authors
 
