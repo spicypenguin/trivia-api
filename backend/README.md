@@ -108,7 +108,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     }
     ```
 
-#### GET '/api/questions'
+#### GET `/api/questions`
 - Fetches a list of all questions, paginated into pages of `10` questions
 - List is ordered by `Question.id` for consistent diplay
 - Request Arguments: 
@@ -127,7 +127,7 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
             {...}
         ],
         'current_category': None,
-        'categorie's: {
+        'categories': {
             '1': 'Science',
             '2': 'Art',
             '3': 'Geography',
