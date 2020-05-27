@@ -14,13 +14,9 @@ The app is fully functional, and comes complete with unit tests that cover all c
 
 The `./backend` directory contains the Flask and SQLAlchemy server. Refer to the [README.md](./backend/README.md) under that directory for information on getting started with the backend.
 
-Quick start: `cd ./backend && bin/setup.sh && export FLASK_APP=flaskr && export FLASK_ENV=development && flask run --port 1234`
-
 ### Frontend
 
 The `./frontend` directory contains the React frontend to consume the data from the Flask server.  Refer to the [README.md](./frontend/README.md) under that directory for information on getting started with the frontend.
-
-Quick start: `cd ./frontend && npm install && npm start`
 
 ## Authors
 
