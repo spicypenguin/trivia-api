@@ -303,9 +303,6 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(data['message'], 'resource not found')
         self.assertTrue(data['error'], 404)
 
-    # TODO: test for 422 error
-    # TODO: test for 500 error
-
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
