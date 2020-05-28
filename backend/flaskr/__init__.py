@@ -118,71 +118,56 @@ def create_app(test_config=None):
 
         # if `searchTerm` present, execute a search
         if data.get('searchTerm'):
-            return search_for_questions(data)
+            search_term = data.get('searchTerm')
+
+            # filter questions using as case-insensitive match against Question.question
+            matches = Question.query.filter(Question.question.ilike(
+                f'%{search_term}%')).order_by(Question.id).all()
+
+            # QUESTION: do search results also need to be paginated?
+            return jsonify({
+                'questions': [question.format() for question in matches],
+                'total_questions': len(matches),
+                'current_category': None,
+                'success': True
+            })
 
         # else if `question` present, create new question
         elif data.get('question'):
-            return create_new_question(data)
+            # throw a 400 error if all parts of question are not provided
+            if not (
+                data.get('question')
+                and data.get('answer')
+                and data.get('category')
+                and data.get('difficulty')
+            ):
+                abort(400)
+
+            try:
+                question = Question(
+                    question=data.get('question'),
+                    answer=data.get('answer'),
+                    category=data.get('category'),
+                    difficulty=data.get('difficulty')
+                )
+                question.insert()
+                return jsonify({
+                    'success': True,
+                    'question': {
+                        'id': question.id,
+                        'question': question.question,
+                        'answer': question.answer,
+                        'category': question.category,
+                        'difficulty': question.difficulty
+                    }
+                })
+            except:
+                # raise a 422 error if insert to db failed
+                abort(422)
 
         # otherwise there is a data issue, fail out
         else:
             abort(400)
-
-    def create_new_question(data):
-        """Create a new question.
-
-        Takes question, answer, category, difficulty entered from UI.
-        Creates new question object and persists to db.
-        """
-        # Only allow writes to the db if all data is provided
-        if not (
-                data.get('question')
-                and data.get('answer')
-                and data.get('category')
-                and data.get('difficulty')):
-            abort(400)
-
-        try:
-            question = Question(
-                question=data.get('question'),
-                answer=data.get('answer'),
-                category=data.get('category'),
-                difficulty=data.get('difficulty')
-            )
-            question.insert()
-            return jsonify({
-                'success': True,
-                'question': {
-                    'id': question.id,
-                    'question': question.question,
-                    'answer': question.answer,
-                    'category': question.category,
-                    'difficulty': question.difficulty
-                }
-            })
-        except:
-            # raise a 422 error if insert to db failed
-            abort(422)
-
-    def search_for_questions(data):
-        """Search for questions using case-insensitive matching on question.
-
-        Body parameters
-        searchTerm - the keyword to match against the questions in the db
-        """
-        search_term = data.get('searchTerm')
-
-        # filter questions using as case-insensitive match against Question.question
-        matches = Question.query.filter(Question.question.ilike(
-            f'%{search_term}%')).order_by(Question.id).all()
-
-        # QUESTION: do search results also need to be paginated?
-        return jsonify({
-            'questions': [question.format() for question in matches],
-            'total_questions': len(matches),
-            'current_category': None,
-            'success': True
-        })
 
     @app.route('/api/categories/<int:category_id>/questions')
     def get_questions_by_category(category_id):
