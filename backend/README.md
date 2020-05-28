@@ -141,59 +141,64 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     ```
 
 #### POST `/api/questions`
-- Create a new question, or search for existing questions
+- Create a new question
 - Request Arguments: None
-- Request Body:
-    - For create: An object with 4 keys: `question`, `answer`, `category`, and `difficulty`
-        ```
-        {
+- Request Body: An object with 4 keys: `question`, `answer`, `category`, and `difficulty`
+    ```
+    {
+        'question': '',
+        'answer': '',
+        'category': '',
+        'difficulty': ''
+    }
+    ```
+- Response:
+    ```
+    {
+        'success': True,
+        'question': {
+            'id': '',
             'question': '',
             'answer': '',
             'category': '',
             'difficulty': ''
         }
-        ```
-    - For search: An object with 1 key - `searchTerm` - indicating the word being searched for
-        ```
-        {
-            'searchTerm': ''
-        }
-        ```
+    }
+    ```
+- Raises: The following errors can occur when calling this endpoint
+    - `400`: The body provided in the `POST` does not contain all mandatory fields for a new question/answer
+    - `422`: An error happened when attempting to create the new question, but data seemed correct
+
+
+#### POST `/api/questions/search`
+- Create a new question, or search for existing questions
+- Request Arguments: None
+- Request Body: For search: An object with 1 key - `searchTerm` - indicating the word being searched for
+    ```
+    {
+        'searchTerm': ''
+    }
+    ```
 - Response:
-    - For create:
-        ```
-        {
-            'success': True,
-            'question': {
-                'id': '',
+    ```
+    {
+        'questions': [ 
+            {
+                'id': 5
                 'question': '',
                 'answer': '',
-                'category': '',
-                'difficulty': ''
-            }
-        }
-        ```
-    - For search
-        ```
-        {
-            'questions': [ 
-                {
-                    'id': 5
-                    'question': '',
-                    'answer': '',
-                    'category': 1,
-                    'difficulty': 5 
-                },
-                {...}
-            ],
-            'total_questions': 5,
-            'current_category': None,
-            'success': True
-        }
-        ```
+                'category': 1,
+                'difficulty': 5 
+            },
+            {...}
+        ],
+        'total_questions': 5,
+        'current_category': None,
+        'success': True
+    }
+    ```
 - Raises: The following errors can occur when calling this endpoint
-    - `400`: The body provided in the initial `POST` did not match the requirements for either search or create
-    - `422`: An error happened when attempting to create the new question
+    - `400`: The body provided does not contain a searchTerm
 
 #### DELETE `/api/questions/<question_id>`
 - Removes a question from the database, based on the provided ID
@@ -203,7 +208,8 @@ Setting the `FLASK_APP` variable to `flaskr` directs flask to use the `flaskr` d
     ```
     {
         'status': 'OK',
-        'success': True
+        'success': True,
+        'question_id': 1
     }
     ```
 - Raises: The following errors can occur when calling this endpoint

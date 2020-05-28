@@ -9,11 +9,6 @@ from models import setup_db, Question, Category
 QUESTIONS_PER_PAGE = 10
 
 
-def get_start_and_end(page):
-    """Return start and end values based on page requested."""
-    return (page - 1) * QUESTIONS_PER_PAGE, page * QUESTIONS_PER_PAGE
-
-
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__)
@@ -57,26 +52,22 @@ def create_app(test_config=None):
 
         # get all questions, sorted by Question.id
         questions = Question.query.order_by(Question.id).all()
+        page_of_questions = Question.query.order_by(
+            Question.id).paginate(page, QUESTIONS_PER_PAGE).items
 
         # get all categories
         categories = Category.query.all()
 
-        # calculate the start and end page numbers
-        start, end = get_start_and_end(page)
-
-        if start > len(questions):
-            abort(404)
-        else:
-            return jsonify({
-                'questions': [question.format() for question in questions][start:end],
-                'current_category': None,
-                'categories': {
-                    category.format()['id']: category.format()['type']
-                    for category in categories
-                },
-                'total_questions': len(questions),
-                'success': True
-            })
+        return jsonify({
+            'questions': [question.format() for question in page_of_questions],
+            'current_category': None,
+            'categories': {
+                category.format()['id']: category.format()['type']
+                for category in categories
+            },
+            'total_questions': len(questions),
+            'success': True
+        })
 
     @app.route('/api/questions/<int:question_id>', methods=['DELETE'])
     def delete_question(question_id):
@@ -108,12 +99,50 @@ def create_app(test_config=None):
             # otherwise return a success JSON payload
             return jsonify({
                 'status': 'OK',
-                'success': True
+                'success': True,
+                'question_id': question_id
             })
 
     @app.route('/api/questions', methods=['POST'])
-    def create_or_search_question():
-        """Create new question, or search for question."""
+    def create_new_question():
+        """Create new question"""
+        data = request.get_json()
+
+        # throw a 400 error if all parts of question are not provided
+        if not (
+            data.get('question')
+            and data.get('answer')
+            and data.get('category')
+            and data.get('difficulty')
+        ):
+            abort(400)
+
+        try:
+            question = Question(
+                question=data.get('question'),
+                answer=data.get('answer'),
+                category=data.get('category'),
+                difficulty=data.get('difficulty')
+            )
+            question.insert()
+            return jsonify({
+                'success': True,
+                'question': {
+                    'id': question.id,
+                    'question': question.question,
+                    'answer': question.answer,
+                    'category': question.category,
+                    'difficulty': question.difficulty
+                }
+            })
+        except Exception as e:
+            print(e)
+            # raise a 422 error if insert to db failed
+            abort(422)
+
+    @app.route('/api/questions/search', methods=['POST'])
+    def search_for_questions():
+        """Search for question."""
         data = request.get_json()
 
         # if `searchTerm` present, execute a search
@@ -124,46 +153,12 @@ def create_app(test_config=None):
             matches = Question.query.filter(Question.question.ilike(
                 f'%{search_term}%')).order_by(Question.id).all()
 
-            # QUESTION: do search results also need to be paginated?
             return jsonify({
                 'questions': [question.format() for question in matches],
                 'total_questions': len(matches),
                 'current_category': None,
                 'success': True
             })
-
-        # else if `question` present, create new question
-        elif data.get('question'):
-            # throw a 400 error if all parts of question are not provided
-            if not (
-                data.get('question')
-                and data.get('answer')
-                and data.get('category')
-                and data.get('difficulty')
-            ):
-                abort(400)
-
-            try:
-                question = Question(
-                    question=data.get('question'),
-                    answer=data.get('answer'),
-                    category=data.get('category'),
-                    difficulty=data.get('difficulty')
-                )
-                question.insert()
-                return jsonify({
-                    'success': True,
-                    'question': {
-                        'id': question.id,
-                        'question': question.question,
-                        'answer': question.answer,
-                        'category': question.category,
-                        'difficulty': question.difficulty
-                    }
-                })
-            except:
-                # raise a 422 error if insert to db failed
-                abort(422)
 
         # otherwise there is a data issue, fail out
         else:
@@ -172,28 +167,26 @@ def create_app(test_config=None):
     @app.route('/api/categories/<int:category_id>/questions')
     def get_questions_by_category(category_id):
         """Return paginated list of questions for a given category."""
-        # get all questions matching a category ID
-        questions = Question.query.filter(
-            Question.category == category_id).order_by(Question.id).all()
-
         # get the name of the category being requested
         category = Category.query.filter(
             Category.id == category_id).one_or_none()
 
-        # determine start/end for pagination
-        page = request.args.get('page', default=1, type=int)
-        start, end = get_start_and_end(page)
-
-        # category requested could not be found, or page is invalid
-        if not category or start > len(questions):
+        if not category:
             abort(404)
-        else:
-            return jsonify({
-                'questions': [q.format() for q in questions][start:end],
-                'current_category': category.type,
-                'total_questions': len(questions),
-                'success': True
-            })
+
+        # get optional page request param
+        page = request.args.get('page', default=1, type=int)
+
+        # get all questions matching a category ID
+        questions = Question.query.filter(
+            Question.category == category_id).order_by(Question.id).paginate(page, QUESTIONS_PER_PAGE).items
+
+        return jsonify({
+            'questions': [q.format() for q in questions],
+            'current_category': category.type,
+            'total_questions': len(questions),
+            'success': True
+        })
 
     @app.route('/api/quizzes', methods=['POST'])
     def run_quiz():

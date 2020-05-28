@@ -94,6 +94,7 @@ class TriviaTestCase(unittest.TestCase):
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data['status'], 'OK')
+        self.assertEqual(data['question_id'], 10)
 
     def test_delete_invalid_question(self):
         res = self.client().delete('/api/questions/1')
@@ -142,7 +143,8 @@ class TriviaTestCase(unittest.TestCase):
         headers = {
             'Content-Type': 'application/json'
         }
-        res = self.client().post('/api/questions', data=json.dumps(body), headers=headers)
+        res = self.client().post('/api/questions/search',
+                                 data=json.dumps(body), headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -166,9 +168,9 @@ class TriviaTestCase(unittest.TestCase):
             'Content-Type': 'application/json'
         }
         res_lower = self.client().post(
-            '/api/questions', data=json.dumps(body_lower), headers=headers)
+            '/api/questions/search', data=json.dumps(body_lower), headers=headers)
         res_upper = self.client().post(
-            '/api/questions', data=json.dumps(body_upper), headers=headers)
+            '/api/questions/search', data=json.dumps(body_upper), headers=headers)
 
         data_lower = json.loads(res_lower.data)
         data_upper = json.loads(res_upper.data)
@@ -184,7 +186,8 @@ class TriviaTestCase(unittest.TestCase):
         headers = {
             'Content-Type': 'application/json'
         }
-        res = self.client().post('/api/questions', data=json.dumps(body), headers=headers)
+        res = self.client().post('/api/questions/search',
+                                 data=json.dumps(body), headers=headers)
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 200)
@@ -195,14 +198,15 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(len(data['questions']), data['total_questions'])
         self.assertEqual(len(data['questions']), 0)
 
-    def test_create_or_search_bad_request(self):
+    def test_search_bad_request(self):
         body = {
             'invalid_payload': True
         }
         headers = {
             'Content-Type': 'application/json'
         }
-        res = self.client().post('/api/questions', data=json.dumps(body), headers=headers)
+        res = self.client().post('/api/questions/search',
+                                 data=json.dumps(body), headers=headers)
 
         data = json.loads(res.data)
         self.assertEqual(res.status_code, 400)
